@@ -1,0 +1,51 @@
+name: Market Research Report
+
+on:
+  schedule:
+    # Run at 9:30 AM ET (1:30 PM UTC) on weekdays
+    # Market opens at 9:30 AM ET
+    - cron: '30 13 * * 1-5'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  market-research:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: false
+        load: true
+        tags: market-research-agent:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Run market research in Docker
+      run: |
+        docker run --rm \
+          -e GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+          -e SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }} \
+          -e FROM_EMAIL=${{ secrets.FROM_EMAIL }} \
+          -e TO_EMAIL=${{ secrets.TO_EMAIL }} \
+          -e SLACK_BOT_TOKEN=${{ secrets.SLACK_BOT_TOKEN }} \
+          -e SLACK_CHANNEL=${{ secrets.SLACK_CHANNEL }} \
+          -v ${{ github.workspace }}/reports:/app/reports \
+          market-research-agent:latest
+    
+    - name: Upload report artifact
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: market-reports
+        path: reports/*.html
+        retention-days: 30

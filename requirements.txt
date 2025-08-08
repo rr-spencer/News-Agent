@@ -1,0 +1,10 @@
+langchain==0.1.0
+langchain-groq==0.0.1
+aiohttp==3.9.0
+beautifulsoup4==4.12.2
+requests==2.31.0
+yfinance==0.2.18
+sendgrid==6.10.0
+slack-sdk==3.24.0
+python-dotenv==1.0.0
+markdown2
