@@ -2,8 +2,8 @@ name: Daily Market Research Report
 
 on:
   schedule:
-    # Runs at 7:30 AM EST (12:30 PM UTC) every weekday
-    - cron: '30 12 * * 1-5'
+    # Runs at 7:30 AM EST (12:30 PM UTC) every day
+    - cron: '30 12 * * *'
   workflow_dispatch: # Allows manual triggering
 
 jobs:
