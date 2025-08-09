@@ -8,7 +8,6 @@ import sys
 import os
 import json
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler
 
 # Add the parent directory to sys.path to import our modules
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -76,30 +75,29 @@ async def run_market_research():
         }
 
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        """Handle GET requests (for cron jobs)"""
-        try:
-            # Run the market research
-            result = asyncio.run(run_market_research())
-            
-            # Send response
-            self.send_response(200 if result['success'] else 500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            self.wfile.write(json.dumps(result).encode())
-            
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            error_response = {
+def handler(event, context):
+    """Vercel serverless function handler"""
+    try:
+        # Run the market research
+        result = asyncio.run(run_market_research())
+        
+        return {
+            'statusCode': 200 if result['success'] else 500,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps(result)
+        }
+        
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json'
+            },
+            'body': json.dumps({
                 "success": False,
                 "error": str(e),
                 "message": "Internal server error"
-            }
-            self.wfile.write(json.dumps(error_response).encode())
-    
-    def do_POST(self):
-        """Handle POST requests (same as GET for this use case)"""
-        self.do_GET()
+            })
+        }
